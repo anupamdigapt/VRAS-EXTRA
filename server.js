@@ -61,7 +61,7 @@ const adminApiRoutes = require('./routes/admin/api');
 
 // API Route
 const apiRoutes = require('./routes/api');
-// app.use('/api', apiRoutes);
+app.use('/api', apiRoutes);
 
 // 404 Route
 app.use((req, res, next) => {
@@ -73,7 +73,7 @@ app.set('views', 'views');
 app.set('view engine', 'ejs')
 
 // Server Listen 
-let PORT = process.env.PORT || 6888;
+let PORT = process.env.PORT || 4888;
 let HOST = process.env.PORT || '127.0.0.1';
 
 app.listen(PORT, HOST, (error)=>{
