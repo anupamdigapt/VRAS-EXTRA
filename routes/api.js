@@ -37,8 +37,8 @@ router.get('/', (req, res) => {
 // router.post('/contact-mail', sendEmail);
 // router.post('/subscriptions', subscriptionsController.index);
 router.post('/register', register);
-// router.post('/forgot-password', forgotPassword);
-// router.post('/reset-password', resetPassword);
+router.post('/forgot-password', forgotPassword);
+router.post('/reset-password', resetPassword);
 router.post('/login', login);
 // router.post('/vrlogin', vrLogin);
 // router.delete('/logout', [authentication], logout);

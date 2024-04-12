@@ -1,14 +1,29 @@
+// Validator
 const { Validator } = require('node-input-validator');
+
+// Bcrypt for hash password
 const bcrypt = require('bcrypt');
+const salt = bcrypt.genSaltSync(10); // generate a salt
+
 const moment = require('moment');
+
+// Common Response
+const { response } = require('../../../config/response');
+
+// Cookie handling library
+const cookie = require('cookie');
+
+// nanoid - Unique Token
+const randomString = require('randomstring');
+const generateUniqueCode = randomString.generate({
+    length: 30,
+    charset: 'numeric'
+});
+
+// Model
 const { Op } = require('sequelize');
 const { User } = require('../../../models/User');
 const { Client } = require('../../../models/Client');
-const { response } = require('../../../config/response');
-const cookie = require('cookie');
-const randomstring = require('randomstring');
-
-const { generateCode } = require('../../../config/auth');
 
 const login = async (req, res) => {
     try {
@@ -21,9 +36,12 @@ const login = async (req, res) => {
             return response(res, validator.errors, 'validation', 422);
         }
 
-        const { username, password } = req.body;
+        let errors = {};
+        const {
+            username,
+            password
+        } = req.body;
 
-        // Attempt to find the user
         const user = await User.findOne({
             include: [Client],
             where: {
@@ -40,52 +58,51 @@ const login = async (req, res) => {
                 ]
             }
         });
-
-        if (!user) {
-            return response(res, { message: 'User not found.' }, 'User not found.', 404);
-        }
-
-        // Check client subscription status
-        if (user.client) {
+        if (user?.client) {
             const fromDate = moment().startOf('day');
-            const toDate = moment(user.client.endAt).startOf('day');
-            if (user.client.endAt && toDate.isSameOrBefore(fromDate)) {
-                return response(res, { message: 'Subscription expired. Please renew.' }, 'Subscription expired. Please renew.', 403);
+            const toDate = moment(user?.client?.endAt).startOf('day');
+            if (user?.client?.endAt && toDate.isSameOrBefore(fromDate)) {
+                errors['username'] = {
+                    message: 'Subscription expired. Please renew.',
+                    rule: 'same'
+                };
             }
 
-            if (user.client.status !== 'active') {
-                return response(res, { message: 'Client inactive. Contact Super-Admin.' }, 'Client inactive. Contact Super-Admin.', 403);
+            if (user?.client?.status != 'active') {
+                errors['username'] = {
+                    message: 'Client inactive. Contact Super-Admin.',
+                    rule: 'same'
+                };
             }
         }
-
-        // Compare passwords
-        const passwordMatch = await bcrypt.compare(password, user.password);
-        if (!passwordMatch) {
-            return response(res, { message: 'Invalid credentials.' }, 'Invalid credentials.', 401);
+        if (!user || !(await bcrypt.compare(password, user?.password))) {
+            errors['username'] = {
+                message: 'Invalid credentials.',
+                rule: 'same'
+            };
         }
 
-        // Generate token and code
-        const token = randomstring.generate({
-            length: 32,
-            charset: 'alphanumeric',
-        });
-        const code = generateCode();
+        if (Object.keys(errors).length) {
+            return response(res, errors, 'validation', 422);
+        }
+
+        const token = generateUniqueCode; // Token to be set as cookie
         user.token = token;
-        user.code = code;
-
-        // Save user
         await user.save();
-
-        // Set token in response header
-        res.setHeader('Authorization', token);
+        
+        res.setHeader('Set-Cookie', cookie.serialize('authToken', token, {
+            httpOnly: true,
+            maxAge: 60 * 60 * 24 * 7,
+            sameSite: 'strict',
+            path: '/'
+        }));
 
         return response(res, user, 'User login successful.', 200);
     } catch (error) {
-        console.error('Login error:', error);
-        return response(res, req.body, 'Internal Server Error', 500);
+        return response(res, req.body, error.message, 500);
     }
 }
 
 module.exports = {
-    login,
-};
+    login
+}
