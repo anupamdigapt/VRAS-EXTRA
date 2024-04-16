@@ -13,7 +13,7 @@ const { response } = require('../../../config/response');
 // Cookie handling library
 const cookie = require('cookie');
 
-// nanoid - Unique Token
+// Unique Token
 const randomString = require('randomstring');
 const generateUniqueCode = randomString.generate({
     length: 30,
@@ -103,6 +103,65 @@ const login = async (req, res) => {
     }
 }
 
+const logout = async (req, res) => {
+    try {
+        const { id } = req.user;
+
+        const user = await User.findOne({
+            where: {
+                id: { [Op.eq]: id }
+            }
+        });
+        if (!user) {
+            return response(res, req.body, 'User not found.', 404);
+        }
+
+        // Add the token to the blacklist
+        blacklistedTokens.add(user.token);
+
+        user.token = null;
+        user.code = null;
+        await user.save();
+
+        return response(res, user, 'User logout successfull.', 200);
+    } catch (error) {
+        return response(res, req.body, error.message, 500);
+    }
+}
+
+const vrLogin = async (req, res) => {
+    try {
+        const validator = new Validator(req.body, {
+            code: 'required'
+        });
+        const matched = await validator.check();
+        if (!matched) {
+            return response(res, validator.errors, 'validation', 422);
+        }
+
+        const { code } = req.body;
+
+        const user = await User.findOne({
+            where: {
+                [Op.and]: [
+                    { role: { [Op.ne]: 'admin' } },
+                    { status: { [Op.eq]: 'active' } },
+                    { code: { [Op.eq]: code } }
+                ]
+            }
+        });
+        if (!user) {
+            return response(res, user, 'User not found.', 404);
+        }
+
+        return response(res, user, 'User vrlogin successfull.', 200);
+    } catch (error) {
+        return response(res, req.body, error.message, 500);
+    }
+}
+
 module.exports = {
-    login
+    login,
+    logout,
+    vrLogin
 }
