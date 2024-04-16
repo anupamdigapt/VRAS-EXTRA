@@ -57,7 +57,7 @@ global.blacklistedTokens = new Set();
 // Routes 
 // Admin API Route
 const adminApiRoutes = require('./routes/admin/api');
-// app.use('/api/admin', adminApiRoutes);
+app.use('/api/admin', adminApiRoutes);
 
 // API Route
 const apiRoutes = require('./routes/api');
