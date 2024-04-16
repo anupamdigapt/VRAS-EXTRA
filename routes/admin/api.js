@@ -8,7 +8,7 @@ var router = express.Router();
 const { response } = require('../../config/response');
 
 // JWT Middleware - Auth
-const { authentication, roleAuthorization } = require('../../config/auth');
+const { authentication } = require('../../config/auth');
 
 // Import Controllers
 const { login, logout } = require('../../controllers/admin/api/auth/loginController');
