@@ -36,7 +36,7 @@ const store = async (req,res) => {
     try {
         const validator = new Validator(req.body, {
             name: 'required',
-            peice: 'required',
+            price: 'required',
             numberOfDays: 'required|numeric',
             numberOfUsers: 'required|numeric',
         });
