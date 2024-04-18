@@ -47,14 +47,14 @@ router.post('/change-password', [authentication], store);
 // router.post('/profile', [authentication], update);
 // router.post('/permissions', [authentication], permissionsController.index);
 
-// router.group('/targets', (router) => {
-//     router.use([authentication]);
-//     router.get('/', targetsController.index);
-//     router.post('/store', targetsController.store);
-//     router.get('/show/:id', targetsController.show);
-//     router.put('/update/:id', targetsController.update);
-//     router.delete('/destroy/:id', targetsController.destroy);
-// });
+router.group('/targets', (router) => {
+    router.use([authentication]);
+    router.get('/', targetsController.index);
+    router.post('/store', targetsController.store);
+    router.get('/show/:id', targetsController.show);
+    router.put('/update/:id', targetsController.update);
+    router.delete('/destroy/:id', targetsController.destroy);
+});
 
 // router.group('/users', (router) => {
 //     router.use([authentication]);
