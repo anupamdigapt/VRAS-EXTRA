@@ -43,8 +43,8 @@ router.post('/login', login);
 router.post('/vrlogin', vrLogin);
 router.delete('/logout', [authentication], logout);
 router.post('/change-password', [authentication], store);
-// router.get('/profile', [authentication], show);
-// router.post('/profile', [authentication], update);
+router.get('/profile', [authentication], show);
+router.post('/profile', [authentication], update);
 // router.post('/permissions', [authentication], permissionsController.index);
 
 router.group('/targets', (router) => {
